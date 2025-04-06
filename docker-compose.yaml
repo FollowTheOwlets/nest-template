@@ -1,83 +1,91 @@
 version: '3.8'
 
 services:
-    jaeger:
-        image: jaegertracing/all-in-one:1.62.0
-        environment:
-            COLLECTOR_ZIPKIN_HOST_PORT: 9411
-            COLLECTOR_OTLP_ENABLED: 'true'
-        ports:
-            - '6831:6831/udp' # Thrift UDP (agent)
-            - '6832:6832/udp' # Thrift UDP (agent)
-            - '5778:5778' # Configuration (agent)
-            - '16686:16686' # Jaeger UI
-            - '4317:4317' # OTLP gRPC
-            - '4318:4318' # OTLP HTTP
-            - '14250:14250' # Collector gRPC
-            - '14268:14268' # Collector HTTP
-            - '14269:14269' # Collector Admin
-            - '9411:9411' # Zipkin
-        restart: unless-stopped
-        volumes:
-            - jaeger-data:/tmp
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: 9411
+      COLLECTOR_OTLP_ENABLED: 'true'
+    ports:
+      - '6831:6831/udp' # Thrift UDP (agent)
+      - '6832:6832/udp' # Thrift UDP (agent)
+      - '5778:5778' # Configuration (agent)
+      - '16686:16686' # Jaeger UI
+      - '4317:4317' # OTLP gRPC
+      - '4318:4318' # OTLP HTTP
+      - '14250:14250' # Collector gRPC
+      - '14268:14268' # Collector HTTP
+      - '14269:14269' # Collector Admin
+      - '9411:9411' # Zipkin
+    restart: unless-stopped
+    volumes:
+      - jaeger-data:/tmp
 
-    postgres:
-        image: postgres
-        environment:
-            - POSTGRES_PASSWORD=mypassword
-            - POSTGRES_USER=myuser
-            - POSTGRES_DB=db
-        ports:
-            - '5433:5432'
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_USER=myuser
+      - POSTGRES_DB=default_nest_database
+    ports:
+      - '5433:5432'
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
 
-    nest:
-        build:
-            context: .
-            dockerfile: Dockerfile
-            args:
-                - NODE_ENV=development
-        dns:
-            - 8.8.8.8
-        ports:
-            - 3000:3000
-            - 50055:50055
-        environment:
-            - PORT=3000
-            - PG_USERNAME=myuser
-            - PG_PASSWORD=mypassword
-            - PG_DATABASE=db
-            - PG_HOST=postgres
-            - PG_PORT=5432
-            - REDIS_URL=redis://redis:6379
-            - RPC_HOST=nest:50055
-            - SWAGGER_TITLE=template
-            - SERVICE_NAME=Template
-            - SWAGGER_DESC=Сервис шаблон
-        volumes:
-            - .:/usr/src/app
-        depends_on:
-            - mongodb
-            - redis
-            - postgres
-            - jaeger
+  nest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=development
+    dns:
+      - 8.8.8.8
+    ports:
+      - 3000:3000
+      - 50055:50055
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - PG_USERNAME=myuser
+      - PG_PASSWORD=mypassword
+      - PG_DATABASE=default_nest_database
+      - PG_SCHEMA=default_nest_schema
+      - PG_HOST=postgres
+      - PG_PORT=5432
+      - REDIS_URL=redis://redis:6379
+      - REDIS_PASSWORD=redispass
+      - REDIS_USERNAME=default
+      - RPC_HOST=nest:50055
+      - SWAGGER_TITLE=template
+      - SERVICE_NAME=Template
+      - SWAGGER_DESC=Сервис шаблон
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - mongodb
+      - redis
+      - postgres
+      - jaeger
 
-    redis:
-        image: 'redis:alpine'
-        ports:
-            - '6379:6379'
+  redis:
+    image: redis/redis-stack:latest
+    volumes:
+      - ./data/redis:/data
+    environment:
+      REDIS_ARGS: "--requirepass redispass"
+    ports:
+      - '6379:6379'
 
-    mongodb:
-        image: 'mongo:latest'
-        ports:
-            - '27017:27017'
-        volumes:
-            - ./data:/data/db
-        environment:
-            - MONGODB_DATABASE=db
-        restart: unless-stopped
+  mongodb:
+    image: 'mongo:latest'
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./data/mongo:/data/db
+    environment:
+      - MONGODB_DATABASE=db
+    restart: unless-stopped
 
 volumes:
-    jaeger-data:
-    postgres_data:
+  jaeger-data:
+  postgres_data:

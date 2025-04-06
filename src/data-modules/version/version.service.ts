@@ -15,12 +15,20 @@ export class VersionService {
         logOutput: true,
     })
     async getLastVersion() {
-        const res = await this.versionRepository.query(
-            `SELECT version
-             from service_version
-             order by release_date desc
-             limit 1`,
-        );
-        return res[0];
+        return await this.versionRepository.findOne({
+            where: {},
+            order: {
+                releaseDate: 'DESC',
+            },
+        });
+    }
+
+    @Trace('VersionService.getLastVersion', {
+        logInput: false,
+        logOutput: true,
+    })
+    async updateVersion(version: string) {
+        const entity = this.versionRepository.create({ version });
+        await this.versionRepository.save(entity);
     }
 }

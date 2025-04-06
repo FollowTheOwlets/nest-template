@@ -11,7 +11,6 @@ import { HttpExceptionFilter } from '~src/app/filter/error.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
-    app.useGlobalFilters(new HttpExceptionFilter(new TraceService()));
     app.enableVersioning({
         type: VersioningType.URI,
         defaultVersion: '1',

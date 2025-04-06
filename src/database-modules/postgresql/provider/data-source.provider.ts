@@ -17,7 +17,7 @@ export default {
             migrations: [
                 join(
                     __dirname,
-                    '../../../../dist/database-modules/postgresql/changes/*.js',
+                    '../../../../dist/database-modules/postgresql/changes/**/*.js',
                 ),
             ],
         });

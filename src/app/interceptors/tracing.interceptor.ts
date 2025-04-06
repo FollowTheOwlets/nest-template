@@ -19,6 +19,9 @@ export class TracingInterceptor implements NestInterceptor {
         next: CallHandler,
     ): Observable<unknown> {
         const request = exContext.switchToHttp().getRequest();
+
+        if (!request) return next.handle();
+
         const { method, url, headers } = request;
         const startTime = Date.now();
 

@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import {
+    ArgumentsHost,
+    Catch,
+    ExceptionFilter,
+    HttpException,
+    HttpStatus,
+    Logger,
+} from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Response } from 'express';
 import { CustomHttpException } from './http-exceptions.type';
@@ -9,16 +16,18 @@ import { StringUtils } from '~src/utils/string.utils';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-    constructor(private readonly traceService: TraceService) {}
+    constructor(
+        private readonly traceService: TraceService,
+        private readonly logger: Logger,
+    ) {}
 
     catch(exception: unknown, host: ArgumentsHost): void {
+        this.logger.debug(exception);
+
         const span = this.traceService.getSpan();
 
         const ctx: HttpArgumentsHost = host.switchToHttp();
-        const response: Response<
-            any,
-            Record<string, any>
-        > = ctx.getResponse<Response>();
+        const response: Response = ctx.getResponse<Response>();
         const status: number =
             exception instanceof HttpException
                 ? exception.getStatus()
@@ -48,13 +57,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
                 text: message,
                 details: {
                     time: new Date(),
-                    method: req.method,
-                    url: `${req.protocol}://${req.hostname}${req.originalUrl}`,
+                    method: req?.method,
+                    url: `${req?.protocol}://${req?.hostname}${req?.originalUrl}`,
                     definition_name: null,
                     stack: (exception as Error)?.stack ?? null,
                     external_error: null,
-                    ...(req.x_request_id
-                        ? { x_request_id: req.x_request_id }
+                    ...(req?.x_request_id
+                        ? { x_request_id: req?.x_request_id }
                         : {}),
                 },
             },

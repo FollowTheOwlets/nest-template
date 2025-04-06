@@ -4,6 +4,7 @@ import { copyMetadataFromFunctionToFunction } from '~src/telemetry/trace/utils/o
 import { TraceService } from '~src/telemetry/trace/trace.service';
 import { AttributeValue } from '@opentelemetry/api/build/src/common/Attributes';
 import { StringUtils } from '~src/utils/string.utils';
+import { CustomInternalServerException } from '~src/app/filter/http-exceptions.type';
 
 const traceService = new TraceService();
 
@@ -64,7 +65,6 @@ export function Trace(
                         })
                         .catch((error: Error) => {
                             traceService.recordException(error);
-                            throw error;
                         })
                         .finally(() => {
                             span.end();

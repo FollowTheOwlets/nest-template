@@ -9,13 +9,13 @@ export class VersionController {
 
     @GrpcMethod('VersionRpcService', 'get')
     @GRPCTrace('VersionRpcService.get')
-    get(): Promise<{ version: number }> {
-        return this.versionService.getLastVersion();
+    async get() {
+        return await this.versionService.getLastVersion();
     }
 
     @GrpcMethod('VersionRpcService', 'error')
     @GRPCTrace('VersionRpcService.error')
-    error(): Promise<{ version: number }> {
+    error(): never {
         throw new RpcException({
             message: 'VersionRpcService Error',
             code: HttpStatus.INTERNAL_SERVER_ERROR,

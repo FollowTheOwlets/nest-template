@@ -1,10 +1,7 @@
-import { YamlConfigModule } from '@followtheowlets/yaml-conf';
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { CheckConfigInit } from '~src/common-modules/config/check-config.init';
 
 @Module({
-    imports: [YamlConfigModule.forRoot({ filePath: 'config' })],
-    providers: [ConfigService],
-    exports: [ConfigService],
+    providers: [CheckConfigInit],
 })
 export class ConfigModule {}
