@@ -1,0 +1,25 @@
+http:
+    port: <%= process.env.PORT || 3000 %>
+    host: <%= process.env.HOST %>
+
+grpc:
+    url: <%= process.env.RPC_HOST %>
+
+swagger:
+    path: '/api'
+    jsonPath: '/api-json'
+    title: <%= process.env.SWAGGER_TITLE %>
+    description: <%= process.env.SWAGGER_DESC %>
+
+database:
+    psql:
+        type: 'postgres'
+        host: <%= process.env.PG_HOST %>
+        port: <%= process.env.PG_PORT %>
+        username: <%= process.env.PG_USERNAME %>
+        password: <%= process.env.PG_PASSWORD %>
+        database: <%= process.env.PG_DATABASE %>
+        synchronize: false
+        migrationsRun: true
+    redis:
+        url: <%= process.env.REDIS_URL || 'redis://redis:6379' %>

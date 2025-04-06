@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package version;
+
+message Version {
+  string version = 1;
+}
+
+service VersionRpcService {
+  rpc get (google.protobuf.Empty) returns (Version) {}
+  rpc error (google.protobuf.Empty) returns (Version) {}
+}
