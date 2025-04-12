@@ -14,19 +14,20 @@ import { OutgoingHttpHeader } from 'http';
 type TraceRequest = {
     headers:
         | Record<string, string | string[] | undefined>
-        | NodeJS.Dict<OutgoingHttpHeader>;
+        | NodeJS.Dict<OutgoingHttpHeader>
+        | unknown;
     'x-request-id': string | null | undefined;
-    url: string;
+    url: string | unknown;
     body?: unknown;
-    method: string | undefined;
+    query?: unknown;
+    params?: unknown;
+    method: string | undefined | unknown;
 };
 
 type TraceResponse = {
     code: number;
     'x-request-id': string | null | undefined;
-    headers:
-        | Record<string, string | string[] | undefined>
-        | NodeJS.Dict<OutgoingHttpHeader>;
+    headers: Record<string, string | string[] | undefined> | NodeJS.Dict<OutgoingHttpHeader>;
     body?: unknown;
 };
 

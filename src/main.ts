@@ -1,13 +1,11 @@
 import { NestFactory } from '@nestjs/core';
+import '~src/telemetry/config/otel-config';
 import { AppModule } from './app/app.module';
 import { VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { TraceService } from './telemetry/trace/trace.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { otelSDK } from './telemetry/config/otel-config';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { join } from 'path';
-import { HttpExceptionFilter } from '~src/app/filter/error.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
@@ -39,8 +37,6 @@ async function bootstrap() {
         jsonDocumentUrl: swaggerConf.jsonPath,
     });
 
-    otelSDK?.start();
-
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.GRPC,
         options: {
@@ -48,6 +44,16 @@ async function bootstrap() {
             protoPath: join(__dirname, './grpc/proto/version.proto'),
             url: configService.get('grpc.url'),
         },
+    });
+
+    // app.connectMicroservice<MicroserviceOptions>({
+    //     transport: Transport.REDIS,
+    //     options: configService.getOrThrow('mq.redis'),
+    // });
+
+    app.connectMicroservice<MicroserviceOptions>({
+        transport: Transport.KAFKA,
+        options: configService.getOrThrow('mq.kafka'),
     });
 
     await app.startAllMicroservices();

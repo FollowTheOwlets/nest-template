@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  minio:
+    image: quay.io/minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    entrypoint: >
+      sh -c "
+        minio server /data --console-address ':9090' &
+        sleep 5 &&
+        mc alias set local http://localhost:9000 minioadmin minioadmin &&
+        mc mb --region=ru-central1 local/rolf-dev || true &&
+        tail -f /dev/null
+      "
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./data/minio_cache_1:/data1
+      - ./data/minio_cache_2:/data2
+
   jaeger:
     image: jaegertracing/all-in-one:1.62.0
     environment:
@@ -19,7 +39,7 @@ services:
       - '9411:9411' # Zipkin
     restart: unless-stopped
     volumes:
-      - jaeger-data:/tmp
+      - ./data/jaeger:/tmp
 
   postgres:
     image: postgres
@@ -56,9 +76,11 @@ services:
       - REDIS_PASSWORD=redispass
       - REDIS_USERNAME=default
       - RPC_HOST=nest:50055
-      - SWAGGER_TITLE=template
-      - SERVICE_NAME=Template
+      - SWAGGER_TITLE=Nest-starter
+      - SERVICE_NAME=Nest-starter
       - SWAGGER_DESC=Сервис шаблон
+      - HTTP_VERSION_HOST=http://nest:3000
+      - GRPC_VERSION_HOST=nest:50055
     volumes:
       - .:/usr/src/app
     depends_on:
@@ -66,6 +88,7 @@ services:
       - redis
       - postgres
       - jaeger
+      - kafka
 
   redis:
     image: redis/redis-stack:latest
@@ -86,6 +109,27 @@ services:
       - MONGODB_DATABASE=db
     restart: unless-stopped
 
-volumes:
-  jaeger-data:
-  postgres_data:
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka:latest
+    ports:
+      - "9092:9092"
+    expose:
+      - "9094"
+    links:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://172.17.0.1:9094
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_CREATE_TOPICS: "topic-test:1:1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

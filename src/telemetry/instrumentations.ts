@@ -20,37 +20,11 @@ export function getInstrumentations() {
             disableOutgoingRequestInstrumentation: true,
             requestHook: (span, request: ClientRequest | IncomingMessage) => {
                 request = request as IncomingMessage;
-
                 if (request.url) {
-                    const path = new URL(request.url, 'http://example.com')
-                        .pathname;
+                    const path = new URL(request.url, 'http://example.com').pathname;
                     span.updateName(`HTTP ${request.method} ${path}`);
                 }
-
-                const buffers: Uint8Array[] = [];
-
-                request.on('data', (chunk: Uint8Array) => {
-                    buffers.push(chunk);
-                });
-
-                request.on('end', () => {
-                    const requestId = StringUtils.toString(
-                        request.headers['x-request-id'],
-                    );
-                    traceService.saveHttpSpan(requestId, span);
-                    span.setAttribute('x-request-id', requestId);
-                    traceService.traceIncomingRequest(
-                        {
-                            'x-request-id': requestId,
-                            headers: request.headers,
-                            url: request.url || '',
-                            method: request.method || '',
-                            body: Buffer.concat(buffers).toString(),
-                        },
-                        span,
-                    );
-                });
-            },
+            }
         }),
         new ExpressInstrumentation({
             ignoreLayersType: [
@@ -92,7 +66,7 @@ export function getInstrumentations() {
             },
         }),
         new TypeormInstrumentation({
-            enableInternalInstrumentation: true,
+            enableInternalInstrumentation: false,
         }),
     ];
 }

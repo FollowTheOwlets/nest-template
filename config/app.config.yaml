@@ -3,6 +3,13 @@ app:
     name: <%= process.env.SERVICE_NAME %>
     _host: <%= process.env.HOST %>
 
+service:
+    system:
+        headers:
+            x-api-key: <%= process.env.X_API_KEY ||  'x-api-key-example' %>
+    auth:
+        certPath: <%= process.cwd() + '/cert/Random-CA.pem' %>
+
 http:
     port: <%= process.env.PORT || 3000 %>
 
@@ -14,6 +21,17 @@ swagger:
     jsonPath: '/api-json'
     title: <%= process.env.SWAGGER_TITLE %>
     description: <%= process.env.SWAGGER_DESC %>
+
+s3:
+    region: 'ru-central1'
+    bucketName: 'template'
+    requestHandler:
+        timeout: 1800000
+    endpoint: 'http://minio:9000'
+    credentials:
+        accessKeyId: 'minioadmin'
+        secretAccessKey: 'minioadmin'
+    forcePathStyle: true
 
 database:
     psql:
@@ -30,3 +48,28 @@ database:
         url: <%= process.env.REDIS_URL %>
         password: <%= process.env.REDIS_PASSWORD %>
         username: <%= process.env.REDIS_USERNAME %>
+
+hosts:
+    http:
+        version: <%= process.env.HTTP_VERSION_HOST  || 'http://localhost:3000'%>
+    grpc:
+        version: <%= process.env.GRPC_VERSION_HOST  || 'localhost:50055'%>
+
+
+mq:
+    redis:
+        url: <%= process.env.REDIS_URL %>
+        wildcards: true
+        retryAttempts: 20,
+        retryDelay: 3000,
+        password: <%= process.env.REDIS_PASSWORD %>
+        username: <%= process.env.REDIS_USERNAME %>
+    kafka:
+        client:
+            clientId: 'nest-starter'
+            brokers:
+                - 'kafka:9092'
+            ssl: false
+            logLevel: 'INFO'
+        consumer:
+            groupId: 'nest-starter-consumer'

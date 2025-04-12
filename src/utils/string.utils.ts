@@ -23,7 +23,7 @@ export class StringUtils {
      * @param {string} str - The string to check
      * @returns {boolean} - Returns true if the string is blank, otherwise false
      */
-    static isBlank(str: string): boolean {
+    static isBlank(str?: string): boolean {
         return str === null || str === undefined || str.trim().length === 0;
     }
 
@@ -32,7 +32,7 @@ export class StringUtils {
      * @param {string} str - The string to check
      * @returns {boolean} - Returns true if the string is not blank, otherwise false
      */
-    static isNotBlank(str: string): boolean {
+    static isNotBlank(str?: string): boolean {
         return !this.isBlank(str);
     }
 

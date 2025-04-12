@@ -7,17 +7,17 @@ import { GRPCTrace } from '~src/grpc/decorators/grpc-trace.decorator';
 export class VersionController {
     constructor(private versionService: VersionService) {}
 
-    @GrpcMethod('VersionRpcService', 'get')
-    @GRPCTrace('VersionRpcService.get')
+    @GrpcMethod('VersionService', 'get')
+    @GRPCTrace('VersionService.get')
     async get() {
         return await this.versionService.getLastVersion();
     }
 
-    @GrpcMethod('VersionRpcService', 'error')
-    @GRPCTrace('VersionRpcService.error')
+    @GrpcMethod('VersionService', 'error')
+    @GRPCTrace('VersionService.error')
     error(): never {
         throw new RpcException({
-            message: 'VersionRpcService Error',
+            message: 'VersionService Error',
             code: HttpStatus.INTERNAL_SERVER_ERROR,
         });
     }

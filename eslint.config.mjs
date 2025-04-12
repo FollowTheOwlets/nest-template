@@ -1,42 +1,54 @@
-// @ts-check
-import eslint from '@eslint/js';
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import globals from 'globals';
-import tseslint from 'typescript-eslint';
+import tsParser from '@typescript-eslint/parser';
+import typescriptEslintPlugin from '@typescript-eslint/eslint-plugin';
+import prettierPlugin from 'eslint-plugin-prettier';
+import jestPlugin from 'eslint-plugin-jest';
 
-export default tseslint.config(
+export default [
     {
-        ignores: ['eslint.config.mjs'],
+        ignores: ['node_modules/', 'dist/', 'test/'],
     },
-    eslint.configs.recommended,
-    ...tseslint.configs.recommendedTypeChecked,
-    eslintPluginPrettierRecommended,
     {
+        files: ['**/*.ts'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                project: './tsconfig.json',
+                tsconfigRootDir: process.cwd(),
+                ecmaVersion: 2020,
+                sourceType: 'module',
+            },
+        },
+        plugins: {
+            '@typescript-eslint': typescriptEslintPlugin,
+            prettier: prettierPlugin,
+        },
+        rules: {
+            ...typescriptEslintPlugin.configs.recommended.rules,
+            ...prettierPlugin.configs.recommended.rules,
+            'prettier/prettier': 'error',
+            '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+            '@typescript-eslint/no-explicit-any': 'warn',
+            'no-console': 'warn',
+            'eqeqeq': 'error',
+            'no-duplicate-imports': 'error',
+        },
+    },
+    {
+        files: ['**/*.test.ts', '**/*.spec.ts'],
+        plugins: {
+            jest: jestPlugin,
+        },
         languageOptions: {
             globals: {
-                ...globals.node,
-                ...globals.jest,
-            },
-            ecmaVersion: 5,
-            sourceType: 'module',
-            parserOptions: {
-                projectService: true,
-                tsconfigRootDir: import.meta.dirname,
+                jest: true,
             },
         },
-    },
-    {
         rules: {
-            '@typescript-eslint/no-explicit-any': 'off',
-            '@typescript-eslint/no-floating-promises': 'off',
-            '@typescript-eslint/no-unsafe-argument': 'off',
-            '@typescript-eslint/no-unsafe-assignment': 'off',
-            '@typescript-eslint/no-unsafe-member-access': 'off',
-            '@typescript-eslint/no-unsafe-return': 'off',
-            '@typescript-eslint/no-unsafe-call': 'off',
-            '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-            '@typescript-eslint/no-unused-vars': 'warn',
-            '@typescript-eslint/restrict-template-expressions': 'warn',
+            ...jestPlugin.configs.recommended.rules,
+            ...jestPlugin.configs.style.rules,
+            'jest/no-disabled-tests': 'warn',
+            'jest/no-focused-tests': 'error',
+            'jest/no-identical-title': 'error',
         },
     },
-);
+];

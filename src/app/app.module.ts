@@ -1,18 +1,20 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from 'src/common-modules/config/config.module';
 import { LoggingModule } from 'src/common-modules/logging/logging.module';
-import { PostgresqlModule } from 'src/database-modules/postgresql/postgresql.module';
-import { RedisModule } from 'src/database-modules/redis/redis.module';
+import { PostgresqlModule } from 'src/storage-modules/postgresql/postgresql.module';
+import { RedisModule } from 'src/storage-modules/redis/redis.module';
 import { XRequestMiddleware } from './middleware/x-request.middleware';
 import { TraceModule } from '~src/telemetry/trace/trace.module';
-import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
 import { GrpcModule } from '~src/grpc/grpc.module';
 import { HttpModule } from '~src/http/http.module';
 import { YamlConfigModule } from '@followtheowlets/yaml-conf';
 import { GraphqlModule } from '~src/graphql/graphql.module';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { HttpExceptionFilter } from '~src/app/filter/error.filter';
+import { HttpExceptionFilter } from '~src/http/filter/error.filter';
 import { TracingInterceptor } from '~src/app/interceptors/tracing.interceptor';
+import { RequestLogMiddleware } from '~src/app/middleware/request-log.middleware';
+import { MqModule } from '~src/mq/mq.module';
+import { S3Module } from '~src/storage-modules/s3/s3.module';
 
 @Module({
     imports: [
@@ -25,6 +27,8 @@ import { TracingInterceptor } from '~src/app/interceptors/tracing.interceptor';
         HttpModule,
         GrpcModule,
         GraphqlModule,
+        MqModule,
+        S3Module,
     ],
     controllers: [],
     providers: [
@@ -40,6 +44,10 @@ import { TracingInterceptor } from '~src/app/interceptors/tracing.interceptor';
 })
 export class AppModule implements NestModule {
     configure(consumer: MiddlewareConsumer) {
-        return consumer.apply(XRequestMiddleware).forRoutes('*');
+        return consumer
+            .apply(XRequestMiddleware)
+            .forRoutes('*')
+            .apply(RequestLogMiddleware)
+            .forRoutes('*');
     }
 }

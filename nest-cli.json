@@ -7,7 +7,7 @@
     "watchAssets": true,
     "assets": [
       {
-        "include": "./grpc/proto/**"
+        "include": "./grpc/**/proto/**"
       }
     ]
   }
